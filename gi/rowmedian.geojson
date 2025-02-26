@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "rowmedian",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "waterbody": "Flushing Bay", "community": "404", "gi_feature": null, "dep_cont_1": "GR", "asset_id": "158167", "project_ty": "Grant", "dep_contra": "BEPA-GR-2", "asset_widt": "0.0", "nearest_in": "56th Ave & 90th St", "asset_type": "ROW Median", "bbl": "4018437501", "sewer_type": "Combined", "outfall": "BB-006", "asset_x_co": "1019532.9882", "secondary": null, "status_gro": "Constructed", "tree_commo": null, "asset_leng": "0.0", "gi_id": "JUSTAV-1", "assembly_d": "35", "tree_latin": null, "row_onsite": "ROW", "status": "Constructed (Full Maintenance)", "asset_area": "1150.0", "asset_y_co": "207377.3856", "project_na": "Flushing-Gowanus EBP 2010", "city_counc": "25", "constructi": null, "street_add": "90th St", "borough": "Queens", "construc_1": null }, "geometry": { "type": "Point", "coordinates": [ -73.8726851665444, 40.735809252122067 ] } }
+]
+}

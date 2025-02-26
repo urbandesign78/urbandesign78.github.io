@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="A dashboard showing flood calls on the neighborhood level with its corresponding flood prevention infrastructure.">
+        <title>NYC Flood Map</title>
+        <link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
+
+        <!-- STYLESHEETS -->
+        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+        integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+        crossorigin="" />
+        <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css'
+        rel='stylesheet' />
+        <link href='https://labs.easyblog.it/maps/leaflet-search/src/leaflet-search.css' rel='stylesheet' />
+        <link href="../css/MarkerCluster.css" rel="stylesheet" />
+        <link href="../css/MarkerCluster.Default.css" rel="stylesheet" />
+        <link rel="stylesheet" href="../css/L.Control.Zoominfo.css" />
+        <link rel="stylesheet" href="../css/L.Control.MousePosition.css" />
+        <link rel="stylesheet" href="../css/Control.MiniMap.css" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+
+        <!-- SCRIPTS --->
+        <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+        integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+        crossorigin=""></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/1.2.2/fuse.min.js"></script>
+        <script src="./leaflet-providers.js"></script>
+        <script src="./L.Control.Zoominfo.js" ></script>
+        <script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js'></script>
+        <script src='https://labs.easyblog.it/maps/leaflet-search/src/leaflet-search.js'></script>
+        <script src="./gi_vars.js"></script>
+        <script src="./years_vars.js"></script>
+        <script src="./leaflet.markercluster.js"></script>
+        <script src="./L.Control.MousePosition.js" ></script>
+        <script src="./Control.MiniMap.js" ></script>
+        <script src="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.js"></script>
+
+        <style>
+
+        body {
+            height: 100%;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            border: 0;
+            background-attachment: fixed;
+            background-size: 100% auto;
+        }
+
+        .blended_grid {
+            display: block;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            margin: 0px auto 0 auto;
+        }
+
+        .pageContent {
+            background-color: gray;
+            float: left;
+            clear: none;
+            height: 800px;
+            width: 75%;
+        }
+        .info {
+            padding: 6px 8px;
+            font: 14px/16px Arial, Helvetica, sans-serif;
+            background: white;
+            background: rgba(255,255,255,0.9);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
+
+        .info h4 {
+            margin: 0 0 5px;
+            color: #777;
+        }
+
+        .legend {
+            line-height: 18px;
+            color: #555;
+        }
+
+        .legend i {
+            width: 18px;
+            height: 18px;
+            float: left;
+            margin-right: 8px;
+            opacity: 0.7;
+        }
+
+        .pageRightMenu {
+            float: right;
+            clear: none;
+            overflow: auto;
+            height: 800px;
+            width: 25%;
+        }
+        
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+        </style>
+
+    </head>
+
+    <body>
+        <div class="blended_grid w3-sand">
+            <div class="w3-container w3-sand w3-text-purple w3-center">
+                <h1> NYC Flood calls per NTA and corresponding flood prevention infrastructure</h2></div>
+            <div class="w3-container w3-sand w3-left" style="width:100%">
+                <button class="w3-button w3-hover-grey w3-round w3-indigo" style="width:8%" id="decade">2010-2020</button>
+                <button class="w3-button w3-hover-grey w3-round w3-blue" style="width:8%" id="2010">2010</button>
+                <button class="w3-button w3-hover-grey w3-round w3-blue" style="width:8%" id="2011">2011</button>
+                <button class="w3-button w3-hover-grey w3-round w3-blue" style="width:8%" id="2012">2012</button>
+                <button class="w3-button w3-hover-grey w3-round w3-blue" style="width:8%" id="2013">2013</button>
+                <button class="w3-button w3-hover-grey w3-round w3-blue" style="width:8%" id="2014">2014</button>
+                <button class="w3-button w3-hover-grey w3-round w3-blue" style="width:8%" id="2015">2015</button>
+                <button class="w3-button w3-hover-grey w3-round w3-blue" style="width:8%" id="2016">2016</button>
+                <button class="w3-button w3-hover-grey w3-round w3-blue" style="width:8%" id="2017">2017</button>
+                <button class="w3-button w3-hover-grey w3-round w3-blue" style="width:8%" id="2018">2018</button>
+                <button class="w3-button w3-hover-grey w3-round w3-blue" style="width:8%" id="2019">2019</button>
+                <button class="w3-button w3-hover-grey w3-round w3-blue" style="width:8%" id="2020">2020</button>
+            </div>
+            <div class="pageContent w3-sand">
+                <div id = "map"></div>
+            </div>
+            <div class="w3-container w3-sand w3-right" style="width:25%">
+                <iframe width="430" height="800" frameborder="0" scrolling="no" src="https://onedrive.live.com/embed?resid=18BD14BEACA07E80%211474&authkey=%21AOar-DSwLyj7v60&em=2&AllowTyping=True&ActiveCell='NTA'!C1&wdHideGridlines=True&wdHideHeaders=True&wdDownloadButton=True&wdInConfigurator=True&wdInConfigurator=True&edesNext=false&ejss=false"></iframe>           
+              </div> 
+            <div class="w3-container w3-sand w3-text-purple" style ="width:100%">
+                <p class = "w3-small"> &copy; Gowri Anand / gowri.abi.anand@gmail.com 2022</p></div>
+        </div>
+
+        <script>
+            var map = L.map('map', {
+                fullscreenControl: true,
+                zoominfoControl: true,
+                zoomControl: false,
+            }).setView([40.705, -73.99], 11);
+
+            var home = {
+                lat: 40.705,
+                lng: -73.99,
+                zoom: 11
+                }; 
+
+            L.easyButton('fa-home',function(btn,map){
+                map.setView([home.lat, home.lng], home.zoom);
+                },'Zoom To Home').addTo(map);
+                            
+            L.control.mousePosition().addTo(map);
+
+            var info = L.control({
+                position: "bottomright"
+            });
+
+            var baseLayer0 = L.tileLayer("Esri.WorldImagery", {
+                maxZoom: 20,
+                attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
+                    '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+                    'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+                id: 'mapbox/light-v9',
+                tileSize: 512,
+                zoomOffset: -1
+            }).addTo(map);
+
+            var zoom = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+                maxZoom: 20,
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012',
+            })
+
+            let baseLayer1 = L.tileLayer.provider("CartoDB.DarkMatter");
+
+            var leafIcon = L.Icon.extend({
+                options: {
+                iconUrl: "gi.png",
+                iconAnchor: [20, 20], // point of the icon which will correspond to marker's location
+                popupAnchor: [3, 3], // point from which the popup should open relative to the iconAnchor
+                },
+            });
+
+            var smallLeafIcon = new leafIcon({
+                iconSize: [20, 20], // size of the icon
+            });
+
+            var treeIcon = L.Icon.extend({
+                options: {
+                iconUrl: "tree.png",
+                iconAnchor: [20, 20], // point of the icon which will correspond to marker's location
+                popupAnchor: [3, 3], // point from which the popup should open relative to the iconAnchor
+                },
+            });
+
+            var smallTreeIcon = new treeIcon({
+                iconSize: [20, 20], // size of the icon
+            });
+
+            function getColorTot(t) {
+                return t > 5960 ?
+                    "#08306b":
+                    t > 5215 ?
+                    "#08519c":
+                    t > 4470 ?
+                    "#2171b5":
+                    t > 3725 ?
+                    "#4292c6":
+                    t > 2980 ?
+                    "#6baed6":
+                    t > 2235 ?
+                    "#9ecae1":
+                    t > 1490 ?
+                    "#c6dbef":
+                    t > 745 ?
+                    "#deebf7":
+                    t > 0 ?
+                    "#f7fbff":  
+                    "#606060";
+            }
+
+            function getColor(t) {
+                return t > 896 ?
+                    "#08306b":
+                    t > 784 ?
+                    "#08519c":
+                    t > 672 ?
+                    "#2171b5":
+                    t > 560 ?
+                    "#4292c6":
+                    t > 448 ?
+                    "#6baed6":
+                    t > 336 ?
+                    "#9ecae1":
+                    t > 224 ?
+                    "#c6dbef":
+                    t > 112 ?
+                    "#deebf7":
+                    t > 0 ?
+                    "#f7fbff":  
+                    "#606060";
+            }
+
+            var nycTotLegend = L.control({
+                position: 'bottomleft'
+            });
+
+            nycTotLegend.onAdd = function (map) {
+                
+                var div = L.DomUtil.create("div", " info legend"),
+                bins = [0, 745, 1490, 2235, 2980, 3725, 4470, 5215, 5960],
+                labels = []
+                div.innerHTML += "<h4> Total 311 Calls </h4>"
+
+                for (var i = 0; i < bins.length; i++) {
+                    div.innerHTML +=
+                    '<i style="background:' + getColorTot(bins[i] + 1) + '"></i> ' +
+                    bins[i] + (bins[i + 1] ? '&ndash;' + bins[i + 1] + "<br>" : "+ <br>");
+                }
+
+                div.innerHTML += '<i style="background: #606060"></i><span>No Data</span><br>';
+
+                return div;
+            }
+
+            nycTotLegend.addTo(map);
+
+            var nycLegend = L.control({
+                position: 'bottomleft'
+            });
+
+            nycLegend.onAdd = function (map) {
+                
+                var div = L.DomUtil.create("div", " info legend"),
+                bins = [0, 112, 224, 336, 448, 560, 672, 784, 896],
+                labels = []
+                div.innerHTML += "<h4> Total 311 Calls </h4>"
+
+                for (var i = 0; i < bins.length; i++) {
+                    div.innerHTML +=
+                    '<i style="background:' + getColor(bins[i] + 1) + '"></i> ' +
+                    bins[i] + (bins[i + 1] ? '&ndash;' + bins[i + 1] + "<br>" : "+ <br>");
+                }
+
+                div.innerHTML += '<i style="background: #606060"></i><span>No Data</span><br>';
+
+                return div;
+            }
+
+            nycTot.addTo(map);
+
+            info.onAdd = function () {
+                var div = L.DomUtil.create("div", "info");
+                div.innerHTML += "<h4 style='text-align:center'> Welcome: This is a map of NYC NTAs colorized by 311 calls made from 2010 - 2020 </h4> <br>";
+                div.innerHTML += "<h7 style='text-align:center'> On the top left are map controls that let you zoom in or zoom out (zoom level is shown between the + and -), display the map at full screen, or return to <br>" +
+                    " the home view. Below that is interactive mini map frame that allows you to see where you are currently at at a smaller zoom scale. You can toggle it on <br>" +
+                    " and off with the M key. <br>"
+                div.innerHTML += "<br> <h7 style='text-align:center'> On the top right is a layer control menu that lets you toggle between base maps and visualize NYC's green infrastructure efforts. You can toggle it on  <br>" +
+                    " and off with the L key. Below that is a search function that allows you to look for a specfic NTA by name. <br>"
+                div.innerHTML += "<br><h7 style='text-align:center'> On the bottom left is a legend that indicates the number of calls made by residents in that NTA per time period. To the right of this map are tables of total <br>" + 
+                    " flood calls, street trees, green infrastructure, and catch basins aggregated to the NTA, CDTA, and borough level.<br>"
+                div.innerHTML += "<br><h7 style='text-align:center'> Click on the polygons and points for more information about their attributes. Otherwise, you can toggle with this info window with the X key.<br>"
+                return div;
+            }
+
+            info.addTo(map);
+
+            //switch layers based on buttons
+
+            currentLayer = nycTot
+            currentLegend = nycTotLegend
+
+            $("#decade").click(function() {
+                map.removeControl(currentLayer);
+                map.removeControl(currentLegend);
+                currentLayer = nycTot;
+                nycTot.addTo(map);
+                currentLegend = nycTotLegend;
+                nycTotLegend.addTo(map);
+            });
+
+            $("#2010").click(function (){
+                map.removeControl(currentLayer);
+                map.removeControl(currentLegend);
+                currentLayer = nyc2010;
+                nyc2010.addTo(map);
+                currentLegend = nycLegend;
+                nycLegend.addTo(map);
+            });
+
+            $("#2011").click(function (){
+                map.removeControl(currentLayer);
+                map.removeControl(currentLegend);
+                currentLayer = nyc2011;
+                nyc2011.addTo(map);
+                currentLegend = nycLegend;
+                nycLegend.addTo(map);
+            });
+
+            $("#2012").click(function (){
+                map.removeControl(currentLayer);
+                map.removeControl(currentLegend);
+                currentLayer = nyc2012;
+                nyc2012.addTo(map);
+                currentLegend = nycLegend;
+                nycLegend.addTo(map);
+            });
+
+            $("#2013").click(function (){
+                map.removeControl(currentLayer);
+                map.removeControl(currentLegend);
+                currentLayer = nyc2013;
+                nyc2013.addTo(map);
+                currentLegend = nycLegend;
+                nycLegend.addTo(map);
+            });
+
+            $("#2014").click(function (){
+                map.removeControl(currentLayer);
+                map.removeControl(currentLegend);
+                currentLayer = nyc2014;
+                nyc2014.addTo(map);
+                currentLegend = nycLegend;
+                nycLegend.addTo(map);
+            });
+
+            $("#2015").click(function (){
+                map.removeControl(currentLayer);
+                map.removeControl(currentLegend);
+                currentLayer = nyc2013;
+                nyc2015.addTo(map);
+                currentLegend = nycLegend;
+                nycLegend.addTo(map);
+            });
+
+            $("#2016").click(function (){
+                map.removeControl(currentLayer);
+                map.removeControl(currentLegend);
+                currentLayer = nyc2016;
+                nyc2016.addTo(map);
+                currentLegend = nycLegend;
+                nycLegend.addTo(map);
+            });
+
+            $("#2017").click(function (){
+                map.removeControl(currentLayer);
+                map.removeControl(currentLegend);
+                currentLayer = nyc2017;
+                nyc2017.addTo(map);
+                currentLegend = nycLegend;
+                nycLegend.addTo(map);
+            });
+
+            $("#2018").click(function (){
+                map.removeControl(currentLayer);
+                map.removeControl(currentLegend);
+                currentLayer = nyc2018;
+                nyc2018.addTo(map);
+                currentLegend = nycLegend;
+                nycLegend.addTo(map);
+            });
+
+            $("#2019").click(function (){
+                map.removeControl(currentLayer);
+                map.removeControl(currentLegend);
+                currentLayer = nyc2019;
+                nyc2019.addTo(map);
+                currentLegend = nycLegend;
+                nycLegend.addTo(map);
+            });
+
+            $("#2020").click(function (){
+                map.removeControl(currentLayer);
+                map.removeControl(currentLegend);
+                currentLayer = nyc2020;
+                nyc2020.addTo(map);
+                currentLegend = nycLegend;
+                nycLegend.addTo(map);
+            });
+
+            var giCluster = L.markerClusterGroup({
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                chunkedLoading: true,
+                spiderLegPolylineOptions: {opacity: 0},
+            });
+
+            var giCluster2 = L.markerClusterGroup({
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                chunkedLoading: true,
+                spiderLegPolylineOptions: {opacity: 0},
+            });
+
+            var giCluster3 = L.markerClusterGroup({
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                chunkedLoading: true,
+                spiderLegPolylineOptions: {opacity: 0},
+            });
+
+            var giCluster4 = L.markerClusterGroup({
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                chunkedLoading: true,
+                spiderLegPolylineOptions: {opacity: 0},
+            });
+
+            var giCluster5 = L.markerClusterGroup({
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                chunkedLoading: true,
+                spiderLegPolylineOptions: {opacity: 0},
+            });
+
+            var giCluster6 = L.markerClusterGroup({
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                chunkedLoading: true,
+                spiderLegPolylineOptions: {opacity: 0},
+            });
+
+            var giCluster7 = L.markerClusterGroup({
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                chunkedLoading: true,
+                spiderLegPolylineOptions: {opacity: 0},
+            });
+
+            var giCluster8 = L.markerClusterGroup({
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                chunkedLoading: true,
+                spiderLegPolylineOptions: {opacity: 0},
+            });
+
+            var giCluster9 = L.markerClusterGroup({
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                chunkedLoading: true,
+                spiderLegPolylineOptions: {opacity: 0},
+            });
+
+            var giCluster10 = L.markerClusterGroup({
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                chunkedLoading: true,
+                spiderLegPolylineOptions: {opacity: 0},
+            });
+
+            var giCluster11 = L.markerClusterGroup({
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                chunkedLoading: true,
+                spiderLegPolylineOptions: {opacity: 0},
+            });
+
+            var giCluster12 = L.markerClusterGroup({
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                chunkedLoading: true,
+                spiderLegPolylineOptions: {opacity: 0},
+            });
+
+            var giCluster13 = L.markerClusterGroup({
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                chunkedLoading: true,
+                spiderLegPolylineOptions: {opacity: 0},
+            });
+
+            var giCluster14 = L.markerClusterGroup({
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                chunkedLoading: true,
+                spiderLegPolylineOptions: {opacity: 0},
+            });
+
+            var giCluster15 = L.markerClusterGroup({
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                chunkedLoading: true,
+                spiderLegPolylineOptions: {opacity: 0},
+            });
+
+            var giCluster16 = L.markerClusterGroup({
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                chunkedLoading: true,
+                spiderLegPolylineOptions: {opacity: 0},
+            });
+
+            var giCluster17 = L.markerClusterGroup({
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                chunkedLoading: true,
+                spiderLegPolylineOptions: {opacity: 0},
+            });
+
+            var giCluster18 = L.markerClusterGroup({
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                chunkedLoading: true,
+                spiderLegPolylineOptions: {opacity: 0},
+            });
+
+            var giCluster19 = L.markerClusterGroup({
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                chunkedLoading: true,
+                spiderLegPolylineOptions: {opacity: 0},
+            });
+
+            var giCluster20 = L.markerClusterGroup({
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                chunkedLoading: true,
+                spiderLegPolylineOptions: {opacity: 0},
+            });
+
+            var allgiCluster = L.markerClusterGroup({
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                chunkedLoading: true,
+                spiderLegPolylineOptions: {opacity: 0},
+            });
+
+            var wtCluster = L.markerClusterGroup({
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                chunkedLoading: true,
+                spiderLegPolylineOptions: {opacity: 0},
+            });
+                
+            //layer groups
+
+            var baseMaps = {
+                "Esri.WorldImagery": baseLayer0,
+                "CartoDB.DarkMatter": baseLayer1,
+            };
+
+            var overlayMaps = {
+                "All NYC Green Infrastructure": allgiCluster,
+                "Bioswale": giCluster11,
+                "Cistern": giCluster2,
+                "Detention System": giCluster3,
+                "Drywall": giCluster4,
+                "Engineered Soil Tree Pit": giCluster18,
+                "Enhanced Bioretention": giCluster13,
+                "Greenstrip": giCluster16,
+                "Infiltration Basins": giCluster12,
+                "Median": giCluster15,
+                "Multiple GI Components": giCluster5,
+                "Permeable Pavers": giCluster6,
+                "Porous Asphalt": giCluster7,
+                "Porous Concrete": giCluster8,
+                "Rain Garden": giCluster9,
+                "Rainwater Harvesting": giCluster10,
+                "Roof Infrastructure": giCluster,
+                "Storage Infrastructure": giCluster20,
+                "Stormwater Greenstreet": giCluster14,
+                "Structural Soil": giCluster17,
+                "Subsurface Pipe": giCluster19,
+            }
+            
+            var miniMap = new L.Control.MiniMap(zoom, { position: "topleft", width: 300, height: 360, zoomLevelOffset: -3 }).addTo(map);
+
+            var lC = L.control.layers(baseMaps, overlayMaps).addTo(map).expand();
+
+            var lCDIVElem = lC.getContainer();
+                document.addEventListener("keydown", (e) => {
+                    if (e.key === 'l' | e.key === 'L') {
+                        if (lCDIVElem.style.display == "") {
+                            lCDIVElem.style.display = "none";
+                        } else {
+                            lCDIVElem.style.display = "";
+                        }
+                    }
+                });
+
+            var mapDIVElem = miniMap.getContainer();
+                document.addEventListener("keydown", (e) => {
+                    if (e.key === 'm' | e.key === 'M') {
+                        if (mapDIVElem.style.display == "") {
+                            mapDIVElem.style.display = "none";
+                        } else {
+                            mapDIVElem.style.display = "";
+                        }
+                    }
+                });
+
+            var infoDIVElem = info.getContainer();
+                document.addEventListener("keydown", (e) => {
+                    if (e.key === 'x' | e.key === 'X') {
+                        if (infoDIVElem.style.display == "") {
+                            infoDIVElem.style.display = "none";
+                        } else {
+                            infoDIVElem.style.display = "";
+                        }
+                    }
+                });
+                
+            map.addControl(searchControl);  //inizialize search control
+
+        </script>
+    </body>
+
+</html>

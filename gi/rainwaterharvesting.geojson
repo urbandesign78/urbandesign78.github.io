@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "rainwaterharvesting",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "waterbody": "East River / Open Waters", "community": "402", "gi_feature": null, "dep_cont_1": "GR", "asset_id": "149618", "project_ty": "Grant", "dep_contra": "GQBB17-01", "asset_widt": "0.0", "nearest_in": "51st Ave & 5th St", "asset_type": "Rainwater Harvesting", "bbl": "4000160025", "sewer_type": "Combined", "outfall": "BB-017", "asset_x_co": "996200.1642", "secondary": null, "status_gro": "Constructed", "tree_commo": null, "asset_leng": "0.0", "gi_id": "LOC_1", "assembly_d": "37", "tree_latin": null, "row_onsite": "Onsite", "status": "Constructed", "asset_area": "80.0", "asset_y_co": "209929.62613", "project_na": "UA Local 1 - Plumbers", "city_counc": "26", "constructi": null, "street_add": "2-26 50th Ave", "borough": "Queens", "construc_1": null }, "geometry": { "type": "Point", "coordinates": [ -73.956874568654797, 40.742876821370125 ] } }
+]
+}
